@@ -932,6 +932,85 @@ export class MockModel {
   }
 }
 
+
+// Delta shape stored in cookie — only user-created/modified/deleted records
+// Format: { upserted: { [model]: { [id]: record } }, deleted: { [model]: string[] } }
+// This is intentionally small to stay within the 4 KB browser cookie limit.
+type MockDbDelta = {
+  upserted: Record<string, Record<string, any>>;
+  deleted: Record<string, string[]>;
+};
+
+function getCookiesFn(): any | null {
+  try {
+    return require("next/headers").cookies;
+  } catch {
+    return null;
+  }
+}
+
+function readDeltaFromCookie(): MockDbDelta | null {
+  try {
+    const cookiesFn = getCookiesFn();
+    if (!cookiesFn) return null;
+    const cookieStore = cookiesFn();
+    const cookie = cookieStore.get("mock_db_delta");
+    if (cookie && cookie.value) {
+      return JSON.parse(cookie.value) as MockDbDelta;
+    }
+  } catch {
+    // Ignore
+  }
+  return null;
+}
+
+function writeDeltaToCookie(delta: MockDbDelta): void {
+  try {
+    const cookiesFn = getCookiesFn();
+    if (!cookiesFn) return;
+    const cookieStore = cookiesFn();
+    cookieStore.set("mock_db_delta", JSON.stringify(delta), {
+      path: "/",
+      maxAge: 60 * 60 * 24, // 1 day
+      sameSite: "lax",
+      secure: process.env.NODE_ENV === "production",
+    });
+  } catch {
+    // Ignore
+  }
+}
+
+function mergeDeltaIntoSeed(
+  seed: Record<string, any[]>,
+  delta: MockDbDelta
+): Record<string, any[]> {
+  const result: Record<string, any[]> = {};
+
+  for (const model of Object.keys(seed)) {
+    const deletedIds = new Set((delta.deleted[model] ?? []));
+    const upsertedMap = delta.upserted[model] ?? {};
+
+    // Start from seed, apply updates, skip deletions
+    const merged = seed[model]
+      .filter((rec: any) => !deletedIds.has(rec.id))
+      .map((rec: any) =>
+        upsertedMap[rec.id] ? cloneWithDates(upsertedMap[rec.id]) : cloneWithDates(rec)
+      );
+
+    // Append new records (those in upserted but not in seed)
+    const seedIds = new Set(seed[model].map((r: any) => r.id));
+    for (const [id, rec] of Object.entries(upsertedMap)) {
+      if (!seedIds.has(id)) {
+        merged.push(cloneWithDates(rec));
+      }
+    }
+
+    result[model] = merged;
+  }
+
+  return result;
+}
+
 export class MockDbClient {
   user = new MockModel("user", this);
   application = new MockModel("application", this);
@@ -943,60 +1022,88 @@ export class MockDbClient {
   applicationStatus = new MockModel("applicationStatus", this);
   auditLog = new MockModel("auditLog", this);
 
-  tables: Record<string, any[]>;
+  // Static seed data (never mutated)
+  private seedTables: Record<string, any[]>;
+
+  // In-memory working copy (full merged state for this request)
   localInMemoryTables: Record<string, any[]> | null = null;
 
+  // In-memory delta for this request (accumulated mutations)
+  private localDelta: MockDbDelta = { upserted: {}, deleted: {} };
+
+  // Expose seed for legacy compat (read-only)
+  get tables(): Record<string, any[]> {
+    return this.seedTables;
+  }
+
   constructor() {
-    this.tables = initializeMockDb();
+    this.seedTables = initializeMockDb();
   }
 
   getTables(): Record<string, any[]> {
-    try {
-      let cookiesFn: any;
-      try {
-        cookiesFn = require("next/headers").cookies;
-      } catch {
-        // Ignore
-      }
-      if (cookiesFn) {
-        const cookieStore = cookiesFn();
-        const cookie = cookieStore.get("mock_db_state");
-        if (cookie && cookie.value) {
-          const parsed = JSON.parse(cookie.value);
-          return cloneWithDates(parsed);
-        }
-      }
-    } catch (e) {
-      // Ignore
+    // 1. Try cookie delta (server-side requests)
+    const cookieDelta = readDeltaFromCookie();
+    if (cookieDelta) {
+      return mergeDeltaIntoSeed(this.seedTables, cookieDelta);
     }
-    
+
+    // 2. Use in-memory working copy (already has local delta merged)
     if (!this.localInMemoryTables) {
-      this.localInMemoryTables = this.tables;
+      this.localInMemoryTables = mergeDeltaIntoSeed(this.seedTables, this.localDelta);
     }
     return this.localInMemoryTables;
   }
 
-  saveTables(tables: Record<string, any[]>) {
-    this.localInMemoryTables = tables;
-    try {
-      let cookiesFn: any;
-      try {
-        cookiesFn = require("next/headers").cookies;
-      } catch {
-        // Ignore
+  saveTables(tables: Record<string, any[]>): void {
+    // Rebuild the delta by diffing `tables` against seed
+    const newDelta: MockDbDelta = { upserted: {}, deleted: {} };
+
+    for (const model of Object.keys(this.seedTables)) {
+      const seedMap: Record<string, any> = {};
+      for (const rec of this.seedTables[model]) {
+        seedMap[rec.id] = rec;
       }
-      if (cookiesFn) {
-        const cookieStore = cookiesFn();
-        cookieStore.set("mock_db_state", JSON.stringify(tables), {
-          path: "/",
-          maxAge: 60 * 60 * 24, // 1 day
-          sameSite: "lax",
-          secure: process.env.NODE_ENV === "production",
-        });
+
+      const currentMap: Record<string, any> = {};
+      for (const rec of (tables[model] ?? [])) {
+        currentMap[rec.id] = rec;
       }
-    } catch (e) {
-      // Ignore
+
+      // Detect upserted (new or modified)
+      for (const [id, rec] of Object.entries(currentMap)) {
+        const seedRec = seedMap[id];
+        if (!seedRec) {
+          // New record not in seed
+          if (!newDelta.upserted[model]) newDelta.upserted[model] = {};
+          newDelta.upserted[model][id] = rec;
+        } else {
+          // Modified — compare updatedAt as a fast proxy
+          const seedTs = seedRec.updatedAt instanceof Date
+            ? seedRec.updatedAt.getTime()
+            : new Date(seedRec.updatedAt).getTime();
+          const recTs = rec.updatedAt instanceof Date
+            ? rec.updatedAt.getTime()
+            : new Date(rec.updatedAt).getTime();
+          if (recTs > seedTs) {
+            if (!newDelta.upserted[model]) newDelta.upserted[model] = {};
+            newDelta.upserted[model][id] = rec;
+          }
+        }
+      }
+
+      // Detect deleted (in seed but not in current)
+      for (const id of Object.keys(seedMap)) {
+        if (!currentMap[id]) {
+          if (!newDelta.deleted[model]) newDelta.deleted[model] = [];
+          newDelta.deleted[model].push(id);
+        }
+      }
     }
+
+    this.localDelta = newDelta;
+    this.localInMemoryTables = tables;
+
+    writeDeltaToCookie(newDelta);
   }
 
   async $transaction(arg: any) {
