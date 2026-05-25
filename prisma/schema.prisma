@@ -1,0 +1,218 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  ADMIN
+  ANALYST
+  REVIEWER
+  VIEWER
+}
+
+enum ApplicationStatusEnum {
+  DRAFT
+  SUBMITTED
+  UNDER_REVIEW
+  DOCUMENTS_PENDING
+  EXTRACTION_IN_PROGRESS
+  EXTRACTION_COMPLETE
+  VALIDATION_IN_PROGRESS
+  VALIDATION_COMPLETE
+  RECOMMENDATION_GENERATED
+  ANALYST_REVIEW
+  APPROVED
+  REJECTED
+  RETURNED
+  CANCELLED
+}
+
+enum DocumentType {
+  INCOME_STATEMENT
+  BANK_STATEMENT
+  TAX_RETURN
+  IDENTITY_DOCUMENT
+  PROPERTY_VALUATION
+  EMPLOYMENT_LETTER
+  CREDIT_REPORT
+  BUSINESS_REGISTRATION
+  FINANCIAL_STATEMENT
+  OTHER
+}
+
+enum ExtractionStatus {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
+  FAILED
+  PARTIALLY_COMPLETED
+}
+
+enum DiscrepancySeverity {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum RecommendationType {
+  APPROVE
+  REJECT
+  REFER_TO_ANALYST
+  REQUEST_MORE_INFO
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  name      String
+  password  String
+  role      UserRole @default(ANALYST)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  analystReviews  AnalystReview[]
+  auditLogs       AuditLog[]
+  recommendations Recommendation[]
+
+  @@map("users")
+}
+
+model Application {
+  id            String                @id @default(uuid())
+  applicationId String                @unique
+  applicantName String
+  loanType      String
+  loanAmount    Float
+  status        ApplicationStatusEnum @default(DRAFT)
+  createdAt     DateTime              @default(now())
+  updatedAt     DateTime              @updatedAt
+
+  documents                Document[]
+  validationDiscrepancies   ValidationDiscrepancy[]
+  recommendations           Recommendation[]
+  analystReviews            AnalystReview[]
+  applicationStatusHistory  ApplicationStatus[]
+
+  @@map("applications")
+}
+
+model Document {
+  id            String       @id @default(uuid())
+  applicationId String
+  type          DocumentType
+  fileName      String
+  fileSize      Int
+  storageUrl    String
+  uploadedBy    String
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+
+  application      Application       @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  extractionResult ExtractionResult?
+
+  @@map("documents")
+}
+
+model ExtractionResult {
+  id            String           @id @default(uuid())
+  documentId    String           @unique
+  extractedData Json
+  confidence    Float
+  status        ExtractionStatus @default(PENDING)
+  errors        Json?
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime         @updatedAt
+
+  document Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
+
+  @@map("extraction_results")
+}
+
+model ValidationDiscrepancy {
+  id             String              @id @default(uuid())
+  applicationId  String
+  field          String
+  sourceDocument String
+  targetDocument String
+  sourceValue    String
+  targetValue    String
+  severity       DiscrepancySeverity
+  resolved       Boolean             @default(false)
+  createdAt      DateTime            @default(now())
+  updatedAt      DateTime            @updatedAt
+
+  application Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+
+  @@map("validation_discrepancies")
+}
+
+model Recommendation {
+  id             String             @id @default(uuid())
+  applicationId  String
+  recommendation RecommendationType
+  rationale      String
+  confidence     Float
+  createdBy      String
+  createdAt      DateTime           @default(now())
+  updatedAt      DateTime           @updatedAt
+
+  application Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  user        User        @relation(fields: [createdBy], references: [id])
+
+  @@map("recommendations")
+}
+
+model AnalystReview {
+  id                      String              @id @default(uuid())
+  applicationId           String
+  comment                 String
+  isOverride              Boolean             @default(false)
+  overrideRecommendation  RecommendationType?
+  justification           String?
+  reviewedBy              String
+  createdAt               DateTime            @default(now())
+  updatedAt               DateTime            @updatedAt
+
+  application Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  reviewer    User        @relation(fields: [reviewedBy], references: [id])
+
+  @@map("analyst_reviews")
+}
+
+model ApplicationStatus {
+  id             String                @id @default(uuid())
+  applicationId  String
+  status         ApplicationStatusEnum
+  previousStatus ApplicationStatusEnum?
+  changedBy      String
+  comments       String?
+  createdAt      DateTime              @default(now())
+  updatedAt      DateTime              @updatedAt
+
+  application Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+
+  @@map("application_statuses")
+}
+
+model AuditLog {
+  id            String   @id @default(uuid())
+  applicationId String?
+  userId        String?
+  action        String
+  entityType    String
+  entityId      String
+  details       Json?
+  ipAddress     String?
+  outcome       String
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  user User? @relation(fields: [userId], references: [id])
+
+  @@map("audit_logs")
+}

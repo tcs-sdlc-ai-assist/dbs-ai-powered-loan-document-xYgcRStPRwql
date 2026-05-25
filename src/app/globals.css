@@ -1,0 +1,315 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --dbs-red: #ed1c24;
+  --dbs-red-50: #fef2f2;
+  --dbs-red-100: #fee2e2;
+  --dbs-red-200: #fecaca;
+  --dbs-red-300: #fca5a5;
+  --dbs-red-400: #f87171;
+  --dbs-red-500: #ed1c24;
+  --dbs-red-600: #d91920;
+  --dbs-red-700: #b91c1c;
+  --dbs-red-800: #991b1b;
+  --dbs-red-900: #7f1d1d;
+
+  --dbs-dark-blue: #003d6a;
+  --dbs-dark-blue-50: #eff1f5;
+  --dbs-dark-blue-100: #d0d5e1;
+  --dbs-dark-blue-200: #a1abc3;
+  --dbs-dark-blue-300: #7281a5;
+  --dbs-dark-blue-400: #435787;
+  --dbs-dark-blue-500: #003d6a;
+  --dbs-dark-blue-600: #003158;
+  --dbs-dark-blue-700: #002546;
+  --dbs-dark-blue-800: #001a34;
+  --dbs-dark-blue-900: #000e22;
+
+  --spacing-xs: 0.25rem;
+  --spacing-sm: 0.5rem;
+  --spacing-md: 1rem;
+  --spacing-lg: 1.5rem;
+  --spacing-xl: 2rem;
+  --spacing-2xl: 3rem;
+  --spacing-3xl: 4rem;
+
+  --radius-sm: 0.25rem;
+  --radius-md: 0.375rem;
+  --radius-lg: 0.5rem;
+  --radius-xl: 0.75rem;
+
+  --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system,
+    BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
+@layer base {
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+
+  html {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+    scroll-behavior: smooth;
+  }
+
+  body {
+    font-family: var(--font-sans);
+    color: #1f2937;
+    background-color: #f9fafb;
+    line-height: 1.6;
+    min-height: 100vh;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-weight: 600;
+    line-height: 1.25;
+    color: #111827;
+  }
+
+  h1 {
+    font-size: 1.875rem;
+    letter-spacing: -0.025em;
+  }
+
+  h2 {
+    font-size: 1.5rem;
+    letter-spacing: -0.025em;
+  }
+
+  h3 {
+    font-size: 1.25rem;
+  }
+
+  h4 {
+    font-size: 1.125rem;
+  }
+
+  h5 {
+    font-size: 1rem;
+  }
+
+  h6 {
+    font-size: 0.875rem;
+  }
+
+  a {
+    color: var(--dbs-dark-blue);
+    text-decoration: none;
+  }
+
+  a:hover {
+    text-decoration: underline;
+  }
+
+  input,
+  textarea,
+  select,
+  button {
+    font-family: inherit;
+    font-size: inherit;
+    line-height: inherit;
+  }
+
+  input[type="text"],
+  input[type="email"],
+  input[type="password"],
+  input[type="number"],
+  input[type="search"],
+  input[type="tel"],
+  input[type="url"],
+  textarea,
+  select {
+    display: block;
+    width: 100%;
+    padding: 0.5rem 0.75rem;
+    font-size: 0.875rem;
+    line-height: 1.5;
+    color: #374151;
+    background-color: #ffffff;
+    border: 1px solid #d1d5db;
+    border-radius: var(--radius-md);
+    transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+    outline: none;
+  }
+
+  input[type="text"]:focus,
+  input[type="email"]:focus,
+  input[type="password"]:focus,
+  input[type="number"]:focus,
+  input[type="search"]:focus,
+  input[type="tel"]:focus,
+  input[type="url"]:focus,
+  textarea:focus,
+  select:focus {
+    border-color: var(--dbs-dark-blue);
+    box-shadow: 0 0 0 3px rgba(0, 61, 106, 0.15);
+  }
+
+  input::placeholder,
+  textarea::placeholder {
+    color: #9ca3af;
+  }
+
+  input:disabled,
+  textarea:disabled,
+  select:disabled {
+    background-color: #f3f4f6;
+    color: #9ca3af;
+    cursor: not-allowed;
+  }
+
+  label {
+    display: block;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: #374151;
+    margin-bottom: 0.25rem;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  th {
+    font-weight: 600;
+    text-align: left;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #6b7280;
+  }
+
+  td {
+    font-size: 0.875rem;
+    color: #374151;
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply inline-flex items-center justify-center rounded-md px-4 py-2 text-sm font-medium text-white transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2;
+    background-color: var(--dbs-red);
+  }
+
+  .btn-primary:hover {
+    background-color: var(--dbs-red-600);
+  }
+
+  .btn-primary:focus {
+    --tw-ring-color: var(--dbs-red-500);
+  }
+
+  .btn-primary:disabled {
+    @apply cursor-not-allowed opacity-50;
+  }
+
+  .btn-secondary {
+    @apply inline-flex items-center justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2;
+    --tw-ring-color: var(--dbs-dark-blue);
+  }
+
+  .btn-secondary:disabled {
+    @apply cursor-not-allowed opacity-50;
+  }
+
+  .card {
+    @apply rounded-lg border border-gray-200 bg-white shadow-card;
+  }
+
+  .card-header {
+    @apply border-b border-gray-200 px-6 py-4;
+  }
+
+  .card-body {
+    @apply px-6 py-4;
+  }
+
+  .card-footer {
+    @apply border-t border-gray-200 px-6 py-4;
+  }
+
+  .badge {
+    @apply inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium;
+  }
+
+  .input-error {
+    @apply border-red-500;
+  }
+
+  .input-error:focus {
+    @apply ring-red-500;
+    border-color: #ef4444;
+    box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.15);
+  }
+
+  .error-message {
+    @apply mt-1 text-xs text-red-600;
+  }
+
+  .page-container {
+    @apply mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8;
+  }
+
+  .page-title {
+    @apply text-2xl font-semibold tracking-tight text-gray-900;
+  }
+
+  .section-title {
+    @apply text-lg font-semibold text-gray-900;
+  }
+
+  .table-container {
+    @apply overflow-hidden rounded-lg border border-gray-200 bg-white shadow-card;
+  }
+
+  .table-header {
+    @apply border-b border-gray-200 bg-gray-50 px-6 py-3;
+  }
+
+  .table-row {
+    @apply border-b border-gray-100 px-6 py-4 transition-colors hover:bg-gray-50;
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  .scrollbar-thin {
+    scrollbar-width: thin;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-track {
+    background: #f1f5f9;
+    border-radius: 3px;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 3px;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
+  }
+}
