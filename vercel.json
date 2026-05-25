@@ -9,7 +9,7 @@
     "env": {
       "DATABASE_URL": "postgresql://dummy:dummy@localhost:5432/dummy",
       "NEXTAUTH_SECRET": "a7d8e6c4e09fbb3421d0a5135118d8e65ea0be529681bc775836d5a153db7b05",
-      "NEXTAUTH_URL": "http://localhost:3000"
+      "NEXTAUTH_URL": "https://dbs-ai-powered-loan-document-x-ygc.vercel.app"
     }
   }
 }
