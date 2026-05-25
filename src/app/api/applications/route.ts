@@ -7,6 +7,7 @@ import {
   getClientIp,
   parseValidatedBody,
   withValidation,
+  attachMockDbCookie,
 } from "@/lib/api-helpers";
 import type { AuthenticatedHandler } from "@/lib/api-helpers";
 import applicationService from "@/lib/services/application-service";
@@ -33,11 +34,16 @@ const createHandler: AuthenticatedHandler = async (request, context) => {
       ipAddress,
     });
 
-    return successResponse(
+    // Build the response first, then attach the mock DB delta cookie so the
+    // next server-rendered page (applicant step) can find the new application
+    // even if it lands on a different Vercel serverless instance.
+    const response = successResponse(
       result.application,
       "Application created successfully",
       201
     );
+
+    return attachMockDbCookie(response);
   } catch (error) {
     return handleApiError(error);
   }

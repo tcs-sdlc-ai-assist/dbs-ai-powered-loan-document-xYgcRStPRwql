@@ -7,6 +7,7 @@ import {
   getClientIp,
   parseValidatedBody,
   withValidation,
+  attachMockDbCookie,
 } from "@/lib/api-helpers";
 import type { AuthenticatedHandler } from "@/lib/api-helpers";
 import applicationService from "@/lib/services/application-service";
@@ -55,11 +56,12 @@ const updateHandler: AuthenticatedHandler = async (request, context) => {
       ipAddress,
     });
 
-    return successResponse(
+    const response = successResponse(
       result.application,
       "Applicant details updated successfully",
       200
     );
+    return attachMockDbCookie(response);
   } catch (error) {
     return handleApiError(error);
   }

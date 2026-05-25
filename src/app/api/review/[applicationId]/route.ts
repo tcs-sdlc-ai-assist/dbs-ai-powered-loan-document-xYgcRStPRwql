@@ -5,6 +5,7 @@ import {
   errorResponse,
   handleApiError,
   getClientIp,
+  attachMockDbCookie,
 } from "@/lib/api-helpers";
 import type { AuthenticatedHandler } from "@/lib/api-helpers";
 import applicationService from "@/lib/services/application-service";
@@ -67,7 +68,7 @@ const postHandler: AuthenticatedHandler = async (request, context) => {
       ipAddress,
     });
 
-    return successResponse(
+    const response = successResponse(
       {
         id: result.review.id,
         applicationId: application.applicationId,
@@ -82,6 +83,7 @@ const postHandler: AuthenticatedHandler = async (request, context) => {
       "Review submitted successfully",
       201
     );
+    return attachMockDbCookie(response);
   } catch (error) {
     return handleApiError(error);
   }

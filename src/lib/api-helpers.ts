@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
+import { getMockDb } from "@/lib/db";
+
 import { getServerSession } from "@/lib/auth";
 import { ROLES } from "@/lib/constants";
 import type { Permission } from "@/lib/constants";
@@ -54,6 +56,42 @@ export function successResponse<T>(
   }
 
   return NextResponse.json(body, { status });
+}
+
+/**
+ * Attaches the MockDbClient's pending delta as a cookie on the NextResponse.
+ *
+ * MUST be called by any route handler that mutates data (POST/PUT/PATCH/DELETE)
+ * so that the next server-side render can read the updated state.
+ *
+ * Using response.cookies.set() is the guaranteed approach in Next.js 14 Route
+ * Handlers — more reliable than calling cookies() from within service code.
+ */
+export function attachMockDbCookie(response: NextResponse): NextResponse {
+  try {
+    const mockDb = getMockDb();
+    if (!mockDb) return response;
+
+    const payload = mockDb.getPendingCookiePayload();
+    if (!payload) return response;
+
+    response.cookies.set("mock_db_delta", payload, {
+      path: "/",
+      maxAge: 60 * 60 * 24, // 1 day
+      sameSite: "lax",
+      secure: process.env.NODE_ENV === "production",
+      httpOnly: false, // must be readable by SSR page renders
+    });
+
+    // Clear legacy oversized cookie if present
+    response.cookies.set("mock_db_state", "", {
+      path: "/",
+      maxAge: 0,
+    });
+  } catch {
+    // Never let cookie logic break the response
+  }
+  return response;
 }
 
 /**

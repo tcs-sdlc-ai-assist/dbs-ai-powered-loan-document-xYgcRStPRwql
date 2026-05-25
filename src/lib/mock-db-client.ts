@@ -1063,6 +1063,19 @@ export class MockDbClient {
     return this.localInMemoryTables;
   }
 
+  /**
+   * Returns the current pending delta serialized as a JSON string, or null
+   * if there are no mutations beyond the seed data. Route handlers should
+   * call this AFTER their DB operations and attach the result as a cookie
+   * on the NextResponse to guarantee persistence across serverless instances.
+   */
+  getPendingCookiePayload(): string | null {
+    const hasUpserted = Object.keys(this.localDelta.upserted).length > 0;
+    const hasDeleted = Object.keys(this.localDelta.deleted).length > 0;
+    if (!hasUpserted && !hasDeleted) return null;
+    return JSON.stringify(this.localDelta);
+  }
+
   saveTables(tables: Record<string, any[]>): void {
     // Rebuild the delta by diffing `tables` against seed
     const newDelta: MockDbDelta = { upserted: {}, deleted: {} };

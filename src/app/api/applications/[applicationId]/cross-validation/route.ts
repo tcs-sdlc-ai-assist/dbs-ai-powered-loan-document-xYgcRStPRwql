@@ -5,6 +5,7 @@ import {
   errorResponse,
   handleApiError,
   getClientIp,
+  attachMockDbCookie,
 } from "@/lib/api-helpers";
 import type { AuthenticatedHandler } from "@/lib/api-helpers";
 import applicationService from "@/lib/services/application-service";
@@ -177,7 +178,7 @@ const postHandler: AuthenticatedHandler = async (request, context) => {
       console.error(`Failed to log discrepancy update audit: ${message}`);
     }
 
-    return successResponse(
+    const response = successResponse(
       {
         id: updatedDiscrepancy.id,
         applicationId: application.applicationId,
@@ -194,6 +195,7 @@ const postHandler: AuthenticatedHandler = async (request, context) => {
         : "Discrepancy updated successfully",
       200
     );
+    return attachMockDbCookie(response);
   } catch (error) {
     return handleApiError(error);
   }

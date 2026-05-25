@@ -5,6 +5,7 @@ import {
   errorResponse,
   handleApiError,
   getClientIp,
+  attachMockDbCookie,
 } from "@/lib/api-helpers";
 import type { AuthenticatedHandler } from "@/lib/api-helpers";
 import applicationService from "@/lib/services/application-service";
@@ -72,7 +73,7 @@ const extractHandler: AuthenticatedHandler = async (request, context) => {
       );
     }
 
-    return successResponse(
+    const response = successResponse(
       {
         applicationId: application.applicationId,
         extractionResults: result.extractionResults,
@@ -90,6 +91,7 @@ const extractHandler: AuthenticatedHandler = async (request, context) => {
         ).length,
       }
     );
+    return attachMockDbCookie(response);
   } catch (error) {
     return handleApiError(error);
   }

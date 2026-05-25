@@ -5,6 +5,7 @@ import {
   errorResponse,
   handleApiError,
   getClientIp,
+  attachMockDbCookie,
 } from "@/lib/api-helpers";
 import type { AuthenticatedHandler } from "@/lib/api-helpers";
 import documentService from "@/lib/services/document-service";
@@ -125,11 +126,12 @@ const uploadHandler: AuthenticatedHandler = async (request, context) => {
       ipAddress,
     });
 
-    return successResponse(
+    const response = successResponse(
       result.document,
       "Document uploaded successfully",
       201
     );
+    return attachMockDbCookie(response);
   } catch (error) {
     return handleApiError(error);
   }
