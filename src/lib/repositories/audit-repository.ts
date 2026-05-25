@@ -1,5 +1,5 @@
 import prisma from "@/lib/db";
-import type { Prisma } from "@prisma/client";
+import { Prisma } from "@prisma/client";
 import type { PaginatedResponse, PaginationParams } from "@/types/types";
 
 // ---------------------------------------------------------------------------

@@ -210,7 +210,7 @@ const Alert = React.forwardRef<HTMLDivElement, AlertProps>(
           )}
 
           {/* Content */}
-          <div className={cn("min-w-0 flex-1", iconElement && "ml-3")}>
+          <div className={cn("min-w-0 flex-1", iconElement ? "ml-3" : "")}>
             {title && (
               <h3 className="text-sm font-semibold">{title}</h3>
             )}

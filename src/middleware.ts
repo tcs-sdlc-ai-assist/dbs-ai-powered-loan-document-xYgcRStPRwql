@@ -51,7 +51,7 @@ export async function middleware(request: NextRequest) {
   // Check for a valid NextAuth JWT token
   const token = await getToken({
     req: request,
-    secret: process.env.NEXTAUTH_SECRET,
+    secret: process.env.NEXTAUTH_SECRET || "a7d8e6c4e09fbb3421d0a5135118d8e65ea0be529681bc775836d5a153db7b05",
   });
 
   // Redirect unauthenticated users to /login

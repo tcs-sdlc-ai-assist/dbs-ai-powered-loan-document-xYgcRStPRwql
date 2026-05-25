@@ -260,7 +260,7 @@ export default function ApplicantForm({
       if (onSuccess) {
         onSuccess();
       } else {
-        router.push(`/applications/${applicationId}/documents`);
+        router.push(`/dashboard/applications/${applicationId}/documents`);
       }
     } catch (error) {
       const message =
@@ -541,7 +541,7 @@ export default function ApplicantForm({
         <Button
           type="button"
           variant="secondary"
-          onClick={() => router.push(`/applications/${applicationId}`)}
+          onClick={() => router.push(`/dashboard/applications/${applicationId}`)}
           disabled={loading}
         >
           Back

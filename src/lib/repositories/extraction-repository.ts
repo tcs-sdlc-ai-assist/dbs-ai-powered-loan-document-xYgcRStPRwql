@@ -1,5 +1,5 @@
 import prisma from "@/lib/db";
-import type { ExtractionStatus, Prisma } from "@prisma/client";
+import { ExtractionStatus, Prisma } from "@prisma/client";
 
 // ---------------------------------------------------------------------------
 // Types

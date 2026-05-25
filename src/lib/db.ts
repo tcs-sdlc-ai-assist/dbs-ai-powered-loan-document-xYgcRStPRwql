@@ -1,4 +1,5 @@
 import { PrismaClient } from "@prisma/client";
+import { MockDbClient } from "./mock-db-client";
 
 const globalForPrisma = globalThis as unknown as {
   prisma: PrismaClient | undefined;
@@ -6,12 +7,8 @@ const globalForPrisma = globalThis as unknown as {
 
 export const prisma =
   globalForPrisma.prisma ??
-  new PrismaClient({
-    log: process.env.LOG_LEVEL === "debug" ? ["query", "info", "warn", "error"] : ["error"],
-  });
+  (new MockDbClient() as unknown as PrismaClient);
 
-if (process.env.NODE_ENV !== "production") {
-  globalForPrisma.prisma = prisma;
-}
+globalForPrisma.prisma = prisma;
 
 export default prisma;

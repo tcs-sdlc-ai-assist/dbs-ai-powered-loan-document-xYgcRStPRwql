@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import "@/app/globals.css";
-import { SessionProvider } from "@/components/SessionProvider";
+import Providers from "@/components/layout/Providers";
 
 export const metadata: Metadata = {
   title: "DBS Loan Verification Portal",
@@ -23,7 +23,7 @@ export default function RootLayout({
         <meta name="viewport" content="width=device-width, initial-scale=1" />
       </head>
       <body className="min-h-screen bg-gray-50 font-sans text-gray-900 antialiased">
-        <SessionProvider>{children}</SessionProvider>
+        <Providers>{children}</Providers>
       </body>
     </html>
   );

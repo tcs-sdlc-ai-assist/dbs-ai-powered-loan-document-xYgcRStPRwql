@@ -25,12 +25,12 @@ const NAV_ITEMS: NavItem[] = [
   },
   {
     label: "Applications",
-    href: "/applications",
+    href: "/dashboard/applications",
     requiredRoles: ["ADMIN", "ANALYST", "REVIEWER", "VIEWER"],
   },
   {
     label: "Audit Logs",
-    href: "/audit",
+    href: "/dashboard/audit",
     requiredRoles: ["ADMIN", "ANALYST", "REVIEWER"],
   },
 ];

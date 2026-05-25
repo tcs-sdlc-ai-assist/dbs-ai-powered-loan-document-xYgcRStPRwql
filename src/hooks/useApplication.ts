@@ -311,7 +311,7 @@ function useApplication(): UseApplicationReturn {
       setError(response.error ?? "Failed to fetch application");
       return null;
     },
-    [applicationApi]
+    [applicationApi.get]
   );
 
   // ---------------------------------------------------------------------------
@@ -357,7 +357,7 @@ function useApplication(): UseApplicationReturn {
       setError(response.error ?? "Failed to fetch application");
       return null;
     },
-    [applicationApi]
+    [applicationApi.get]
   );
 
   // ---------------------------------------------------------------------------
@@ -401,7 +401,7 @@ function useApplication(): UseApplicationReturn {
       setError(response.error ?? "Failed to fetch application list");
       return null;
     },
-    [listApi]
+    [listApi.get]
   );
 
   // ---------------------------------------------------------------------------
@@ -425,7 +425,7 @@ function useApplication(): UseApplicationReturn {
       setError(response.error ?? "Failed to create application");
       return null;
     },
-    [applicationApi]
+    [applicationApi.post]
   );
 
   // ---------------------------------------------------------------------------
@@ -455,7 +455,7 @@ function useApplication(): UseApplicationReturn {
       setError(response.error ?? "Failed to update applicant details");
       return null;
     },
-    [applicationApi]
+    [applicationApi.put]
   );
 
   // ---------------------------------------------------------------------------
@@ -494,7 +494,7 @@ function useApplication(): UseApplicationReturn {
       setError(response.error ?? "Failed to upload document");
       return null;
     },
-    [documentApi]
+    [documentApi.execute]
   );
 
   // ---------------------------------------------------------------------------
@@ -517,7 +517,7 @@ function useApplication(): UseApplicationReturn {
       setError(response.error ?? "Failed to fetch documents");
       return [];
     },
-    [documentsListApi]
+    [documentsListApi.get]
   );
 
   // ---------------------------------------------------------------------------
@@ -548,7 +548,7 @@ function useApplication(): UseApplicationReturn {
       setError(response.error ?? "Failed to trigger extraction");
       return false;
     },
-    [extractionTriggerApi]
+    [extractionTriggerApi.post]
   );
 
   // ---------------------------------------------------------------------------
@@ -571,7 +571,7 @@ function useApplication(): UseApplicationReturn {
       setError(response.error ?? "Failed to fetch extraction results");
       return null;
     },
-    [extractionApi]
+    [extractionApi.get]
   );
 
   // ---------------------------------------------------------------------------
@@ -594,7 +594,7 @@ function useApplication(): UseApplicationReturn {
       setError(response.error ?? "Failed to check completeness");
       return null;
     },
-    [completenessApi]
+    [completenessApi.get]
   );
 
   // ---------------------------------------------------------------------------
@@ -620,7 +620,7 @@ function useApplication(): UseApplicationReturn {
       setError(response.error ?? "Failed to run cross-validation");
       return null;
     },
-    [crossValidationApi]
+    [crossValidationApi.get]
   );
 
   // ---------------------------------------------------------------------------
@@ -646,7 +646,7 @@ function useApplication(): UseApplicationReturn {
       setError(response.error ?? "Failed to generate recommendation");
       return null;
     },
-    [recommendationApi]
+    [recommendationApi.post]
   );
 
   // ---------------------------------------------------------------------------
@@ -673,7 +673,7 @@ function useApplication(): UseApplicationReturn {
 
       return null;
     },
-    [recommendationApi]
+    [recommendationApi.get]
   );
 
   // ---------------------------------------------------------------------------
@@ -699,7 +699,7 @@ function useApplication(): UseApplicationReturn {
       setError(response.error ?? "Failed to submit review");
       return null;
     },
-    [reviewApi]
+    [reviewApi.post]
   );
 
   // ---------------------------------------------------------------------------
@@ -735,7 +735,7 @@ function useApplication(): UseApplicationReturn {
       setError(response.error ?? "Failed to submit override");
       return null;
     },
-    [reviewApi]
+    [reviewApi.post]
   );
 
   // ---------------------------------------------------------------------------
@@ -758,7 +758,7 @@ function useApplication(): UseApplicationReturn {
       setError(response.error ?? "Failed to fetch reviews");
       return [];
     },
-    [reviewsListApi]
+    [reviewsListApi.get]
   );
 
   // ---------------------------------------------------------------------------
@@ -805,7 +805,7 @@ function useApplication(): UseApplicationReturn {
       setError(response.error ?? "Failed to update status");
       return null;
     },
-    [statusApi]
+    [statusApi.post]
   );
 
   // ---------------------------------------------------------------------------
@@ -828,7 +828,7 @@ function useApplication(): UseApplicationReturn {
       setError(response.error ?? "Failed to fetch status history");
       return null;
     },
-    [statusHistoryApi]
+    [statusHistoryApi.get]
   );
 
   // ---------------------------------------------------------------------------
@@ -861,19 +861,19 @@ function useApplication(): UseApplicationReturn {
     statusHistoryApi.reset();
     extractionTriggerApi.reset();
   }, [
-    applicationApi,
-    listApi,
-    documentApi,
-    documentsListApi,
-    extractionApi,
-    completenessApi,
-    crossValidationApi,
-    recommendationApi,
-    reviewApi,
-    reviewsListApi,
-    statusApi,
-    statusHistoryApi,
-    extractionTriggerApi,
+    applicationApi.reset,
+    listApi.reset,
+    documentApi.reset,
+    documentsListApi.reset,
+    extractionApi.reset,
+    completenessApi.reset,
+    crossValidationApi.reset,
+    recommendationApi.reset,
+    reviewApi.reset,
+    reviewsListApi.reset,
+    statusApi.reset,
+    statusHistoryApi.reset,
+    extractionTriggerApi.reset,
   ]);
 
   // ---------------------------------------------------------------------------

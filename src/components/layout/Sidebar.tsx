@@ -45,7 +45,7 @@ const SIDEBAR_STEPS: SidebarStep[] = [
     key: "intake",
     label: "Intake",
     description: "Application submission",
-    href: (id) => `/applications/${id}`,
+    href: (id) => `/dashboard/applications/${id}`,
     completedStatuses: [
       "SUBMITTED",
       "UNDER_REVIEW",
@@ -68,7 +68,7 @@ const SIDEBAR_STEPS: SidebarStep[] = [
     key: "applicant",
     label: "Applicant Entry",
     description: "Applicant details",
-    href: (id) => `/applications/${id}/applicant`,
+    href: (id) => `/dashboard/applications/${id}/applicant`,
     completedStatuses: [
       "UNDER_REVIEW",
       "DOCUMENTS_PENDING",
@@ -90,7 +90,7 @@ const SIDEBAR_STEPS: SidebarStep[] = [
     key: "documents",
     label: "Upload Docs",
     description: "Document upload",
-    href: (id) => `/applications/${id}/documents`,
+    href: (id) => `/dashboard/applications/${id}/documents`,
     completedStatuses: [
       "EXTRACTION_IN_PROGRESS",
       "EXTRACTION_COMPLETE",
@@ -108,7 +108,7 @@ const SIDEBAR_STEPS: SidebarStep[] = [
     key: "verification",
     label: "AI Verification",
     description: "Extraction & validation",
-    href: (id) => `/applications/${id}/verification`,
+    href: (id) => `/dashboard/applications/${id}/verification`,
     completedStatuses: [
       "VALIDATION_COMPLETE",
       "RECOMMENDATION_GENERATED",
@@ -140,7 +140,7 @@ const SIDEBAR_STEPS: SidebarStep[] = [
     key: "review",
     label: "Review",
     description: "Analyst review & recommendation",
-    href: (id) => `/applications/${id}/review`,
+    href: (id) => `/dashboard/applications/${id}/review`,
     completedStatuses: ["APPROVED", "REJECTED"],
     activeStatuses: ["RECOMMENDATION_GENERATED", "ANALYST_REVIEW"],
     visibleStatuses: [
@@ -159,7 +159,7 @@ const SIDEBAR_STEPS: SidebarStep[] = [
     key: "summary",
     label: "Summary",
     description: "Final decision",
-    href: (id) => `/applications/${id}/summary`,
+    href: (id) => `/dashboard/applications/${id}/summary`,
     completedStatuses: [],
     activeStatuses: ["APPROVED", "REJECTED", "CANCELLED"],
     visibleStatuses: [
@@ -290,7 +290,7 @@ export default function Sidebar({
               const isCurrentPage =
                 pathname === stepHref ||
                 (step.key === "intake" &&
-                  pathname === `/applications/${applicationId}` &&
+                  pathname === `/dashboard/applications/${applicationId}` &&
                   !visibleSteps.some(
                     (s) =>
                       s.key !== "intake" && pathname === s.href(applicationId)

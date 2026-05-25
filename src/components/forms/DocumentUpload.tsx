@@ -872,7 +872,7 @@ export default function DocumentUpload({
           <Button
             type="button"
             variant="secondary"
-            onClick={() => router.push(`/applications/${applicationId}`)}
+            onClick={() => router.push(`/dashboard/applications/${applicationId}`)}
             disabled={isUploading}
           >
             Back
@@ -880,7 +880,7 @@ export default function DocumentUpload({
           <Button
             type="button"
             variant="primary"
-            onClick={() => router.push(`/applications/${applicationId}/verification`)}
+            onClick={() => router.push(`/dashboard/applications/${applicationId}/verification`)}
             disabled={isUploading || !isComplete}
           >
             {isComplete ? "Continue to Verification" : "Upload Required Documents"}

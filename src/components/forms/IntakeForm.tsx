@@ -154,7 +154,7 @@ export default function IntakeForm({ onSuccess, className }: IntakeFormProps) {
       if (onSuccess) {
         onSuccess(applicationId);
       } else {
-        router.push(`/applications/${applicationId}/applicant`);
+        router.push(`/dashboard/applications/${applicationId}/applicant`);
       }
     } catch (error) {
       const message =
@@ -269,7 +269,7 @@ export default function IntakeForm({ onSuccess, className }: IntakeFormProps) {
         <Button
           type="button"
           variant="secondary"
-          onClick={() => router.push("/applications")}
+          onClick={() => router.push("/dashboard/applications")}
           disabled={loading}
         >
           Cancel

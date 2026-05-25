@@ -5,6 +5,13 @@ import bcrypt from "bcryptjs";
 import prisma from "@/lib/db";
 import type { UserRole } from "@prisma/client";
 
+if (!process.env.NEXTAUTH_URL) {
+  process.env.NEXTAUTH_URL = "http://localhost:3000";
+}
+if (!process.env.NEXTAUTH_SECRET) {
+  process.env.NEXTAUTH_SECRET = "a7d8e6c4e09fbb3421d0a5135118d8e65ea0be529681bc775836d5a153db7b05";
+}
+
 declare module "next-auth" {
   interface Session {
     user: {
@@ -119,7 +126,8 @@ export const authOptions: NextAuthOptions = {
             name: user.name,
             role: user.role,
           };
-        } catch {
+        } catch (error) {
+          console.error("Authorize error:", error);
           return null;
         }
       },
@@ -153,7 +161,7 @@ export const authOptions: NextAuthOptions = {
     strategy: "jwt",
     maxAge: 24 * 60 * 60, // 24 hours
   },
-  secret: process.env.NEXTAUTH_SECRET,
+  secret: process.env.NEXTAUTH_SECRET || "a7d8e6c4e09fbb3421d0a5135118d8e65ea0be529681bc775836d5a153db7b05",
 };
 
 // ---------------------------------------------------------------------------

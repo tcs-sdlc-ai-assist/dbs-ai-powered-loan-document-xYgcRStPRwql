@@ -91,22 +91,22 @@ function getContinueHref(
 ): string {
   switch (status) {
     case "DRAFT":
-      return `/applications/${applicationId}/applicant`;
+      return `/dashboard/applications/${applicationId}/applicant`;
     case "SUBMITTED":
-      return `/applications/${applicationId}/applicant`;
+      return `/dashboard/applications/${applicationId}/applicant`;
     case "UNDER_REVIEW":
     case "DOCUMENTS_PENDING":
-      return `/applications/${applicationId}/documents`;
+      return `/dashboard/applications/${applicationId}/documents`;
     case "EXTRACTION_COMPLETE":
     case "VALIDATION_COMPLETE":
-      return `/applications/${applicationId}/verification`;
+      return `/dashboard/applications/${applicationId}/verification`;
     case "RECOMMENDATION_GENERATED":
     case "ANALYST_REVIEW":
-      return `/applications/${applicationId}/review`;
+      return `/dashboard/applications/${applicationId}/review`;
     case "RETURNED":
-      return `/applications/${applicationId}/documents`;
+      return `/dashboard/applications/${applicationId}/documents`;
     default:
-      return `/applications/${applicationId}`;
+      return `/dashboard/applications/${applicationId}`;
   }
 }
 
@@ -259,7 +259,7 @@ export default function ApplicationCard({
     if (onView) {
       onView(applicationId);
     } else {
-      router.push(`/applications/${applicationId}`);
+      router.push(`/dashboard/applications/${applicationId}`);
     }
   };
 
@@ -287,7 +287,7 @@ export default function ApplicationCard({
               <div className="flex items-center gap-2">
                 <DocumentIcon className="flex-shrink-0 text-gray-400" />
                 <Link
-                  href={`/applications/${applicationId}`}
+                  href={`/dashboard/applications/${applicationId}`}
                   className="text-sm font-bold text-gray-900 no-underline hover:text-[var(--dbs-dark-blue)] hover:underline"
                 >
                   {applicationId}

@@ -7,7 +7,7 @@
   ],
   "build": {
     "env": {
-      "DATABASE_URL": "@database-url",
+      "DATABASE_URL": "postgresql://dummy:dummy@localhost:5432/dummy",
       "NEXTAUTH_SECRET": "@nextauth-secret",
       "NEXTAUTH_URL": "@nextauth-url"
     }

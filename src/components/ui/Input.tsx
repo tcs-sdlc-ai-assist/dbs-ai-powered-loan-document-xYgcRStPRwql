@@ -125,8 +125,8 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
                 ? "border-red-500 focus:border-red-500 focus:ring-2 focus:ring-red-500/20"
                 : "border-gray-300 focus:border-[var(--dbs-dark-blue)] focus:ring-2 focus:ring-[var(--dbs-dark-blue)]/15",
               disabled && "cursor-not-allowed bg-gray-100 text-gray-400",
-              leftAdornment && "pl-10",
-              rightAdornment && "pr-10",
+              leftAdornment ? "pl-10" : "",
+              rightAdornment ? "pr-10" : "",
               inputClassName,
               className
             )}
