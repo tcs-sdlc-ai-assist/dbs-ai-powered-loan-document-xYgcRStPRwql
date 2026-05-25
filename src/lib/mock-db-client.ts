@@ -969,6 +969,8 @@ function writeDeltaToCookie(delta: MockDbDelta): void {
     const cookiesFn = getCookiesFn();
     if (!cookiesFn) return;
     const cookieStore = cookiesFn();
+    // Clear the legacy full-state cookie if it exists (it was too large)
+    try { cookieStore.delete("mock_db_state"); } catch { /* ignore */ }
     cookieStore.set("mock_db_delta", JSON.stringify(delta), {
       path: "/",
       maxAge: 60 * 60 * 24, // 1 day
@@ -1041,16 +1043,23 @@ export class MockDbClient {
   }
 
   getTables(): Record<string, any[]> {
-    // 1. Try cookie delta (server-side requests)
-    const cookieDelta = readDeltaFromCookie();
-    if (cookieDelta) {
-      return mergeDeltaIntoSeed(this.seedTables, cookieDelta);
+    // 1. Prefer in-memory working copy if already set by saveTables() in this request.
+    //    This ensures intra-request reads see the latest mutations without relying on
+    //    the cookie being readable in the same invocation.
+    if (this.localInMemoryTables) {
+      return this.localInMemoryTables;
     }
 
-    // 2. Use in-memory working copy (already has local delta merged)
-    if (!this.localInMemoryTables) {
-      this.localInMemoryTables = mergeDeltaIntoSeed(this.seedTables, this.localDelta);
+    // 2. Try cookie delta (subsequent server-side page requests after an API call).
+    const cookieDelta = readDeltaFromCookie();
+    if (cookieDelta) {
+      const merged = mergeDeltaIntoSeed(this.seedTables, cookieDelta);
+      this.localInMemoryTables = merged;
+      return merged;
     }
+
+    // 3. No cookie / no mutations — return fresh seed data.
+    this.localInMemoryTables = mergeDeltaIntoSeed(this.seedTables, this.localDelta);
     return this.localInMemoryTables;
   }
 
