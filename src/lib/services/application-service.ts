@@ -191,10 +191,34 @@ class ApplicationService {
     }
 
     // Persist the update
-    const updatedApplication = await updateApplicantDetails(
+    let updatedApplication = await updateApplicantDetails(
       applicationId,
       updateInput
     );
+
+    // Transition status to UNDER_REVIEW if currently in SUBMITTED or RETURNED state
+    if (existingApplication.status === "SUBMITTED" || existingApplication.status === "RETURNED") {
+      try {
+        await statusTracker.updateStatus({
+          applicationId,
+          newStatus: "UNDER_REVIEW",
+          changedBy: updatedBy,
+          comments: "Applicant details completed, transitioning to review",
+          ipAddress: ipAddress ?? null,
+        });
+
+        // Re-fetch application to get latest state including the updated status
+        const refreshed = await getApplicationById(applicationId);
+        if (refreshed) {
+          updatedApplication = refreshed;
+        }
+      } catch (error) {
+        console.error(
+          `Failed to update status to UNDER_REVIEW for application ${applicationId}:`,
+          error
+        );
+      }
+    }
 
     // Log the update action via AuditService
     try {

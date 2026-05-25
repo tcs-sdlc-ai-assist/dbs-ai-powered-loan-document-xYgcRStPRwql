@@ -635,6 +635,75 @@ describe("ApplicationService", () => {
         })
       );
     });
+
+    it("automatically transitions status to UNDER_REVIEW if currently SUBMITTED", async () => {
+      const existingApp = buildMockApplication({ status: "SUBMITTED" });
+      const updatedApp = buildMockApplication({
+        applicantName: "Updated Name",
+        status: "SUBMITTED",
+      });
+      const refreshedApp = buildMockApplication({
+        applicantName: "Updated Name",
+        status: "UNDER_REVIEW",
+      });
+
+      mockGetApplicationById
+        .mockResolvedValueOnce(existingApp) // first call inside service
+        .mockResolvedValueOnce(refreshedApp); // second call to refresh
+      mockUpdateApplicantDetails.mockResolvedValue(updatedApp);
+      mockUpdateStatus.mockResolvedValue({
+        success: true,
+        currentStatus: "UNDER_REVIEW",
+      });
+      mockLogAction.mockResolvedValue({ id: "audit-1" });
+
+      const result = await applicationService.updateApplicant(existingApp.id, {
+        applicantName: "Updated Name",
+        updatedBy: MOCK_USER_ID,
+        ipAddress: MOCK_IP,
+      });
+
+      expect(result.success).toBe(true);
+      expect(result.application.status).toBe("UNDER_REVIEW");
+      expect(mockUpdateStatus).toHaveBeenCalledWith({
+        applicationId: existingApp.id,
+        newStatus: "UNDER_REVIEW",
+        changedBy: MOCK_USER_ID,
+        comments: "Applicant details completed, transitioning to review",
+        ipAddress: MOCK_IP,
+      });
+    });
+
+    it("automatically transitions status to UNDER_REVIEW if currently RETURNED", async () => {
+      const existingApp = buildMockApplication({ status: "RETURNED" });
+      const updatedApp = buildMockApplication({
+        applicantName: "Updated Name",
+        status: "RETURNED",
+      });
+      const refreshedApp = buildMockApplication({
+        applicantName: "Updated Name",
+        status: "UNDER_REVIEW",
+      });
+
+      mockGetApplicationById
+        .mockResolvedValueOnce(existingApp)
+        .mockResolvedValueOnce(refreshedApp);
+      mockUpdateApplicantDetails.mockResolvedValue(updatedApp);
+      mockUpdateStatus.mockResolvedValue({
+        success: true,
+        currentStatus: "UNDER_REVIEW",
+      });
+      mockLogAction.mockResolvedValue({ id: "audit-1" });
+
+      const result = await applicationService.updateApplicant(existingApp.id, {
+        applicantName: "Updated Name",
+        updatedBy: MOCK_USER_ID,
+        ipAddress: MOCK_IP,
+      });
+
+      expect(result.success).toBe(true);
+      expect(result.application.status).toBe("UNDER_REVIEW");
+    });
   });
 
   // -------------------------------------------------------------------------
