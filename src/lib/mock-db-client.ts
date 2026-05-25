@@ -635,7 +635,7 @@ export class MockModel {
   constructor(public modelName: string, public client: MockDbClient) {}
 
   private getTable(): any[] {
-    return this.client.tables[this.modelName];
+    return this.client.getTables()[this.modelName];
   }
 
   async findUnique(args: any) {
@@ -650,15 +650,11 @@ export class MockModel {
     return cloned;
   }
 
-  async findFirst(args: any) {
+  async findFirst(args: any = {}) {
     const table = this.getTable();
-    let filtered = table.filter(x => matchesWhere(x, args.where));
-    if (args.orderBy) {
-      sortItems(filtered, args.orderBy);
-    }
-    const item = filtered[0];
+    const item = table.find(x => matchesWhere(x, args.where));
     if (!item) return null;
-
+    
     const cloned = cloneWithDates(item);
     if (args.include) {
       this.populateRelations(cloned, args.include);
@@ -669,12 +665,15 @@ export class MockModel {
   async findMany(args: any = {}) {
     const table = this.getTable();
     let filtered = table.filter(x => matchesWhere(x, args.where));
+    
     if (args.orderBy) {
       sortItems(filtered, args.orderBy);
     }
+
     if (args.skip !== undefined) {
       filtered = filtered.slice(args.skip);
     }
+
     if (args.take !== undefined) {
       filtered = filtered.slice(0, args.take);
     }
@@ -687,7 +686,8 @@ export class MockModel {
   }
 
   async create(args: any) {
-    const table = this.getTable();
+    const allTables = this.client.getTables();
+    const table = allTables[this.modelName];
     const data = { ...args.data };
     if (!data.id) {
       data.id = uuidv4();
@@ -700,6 +700,7 @@ export class MockModel {
     }
 
     table.push(data);
+    this.client.saveTables(allTables);
 
     const cloned = cloneWithDates(data);
     if (args.include) {
@@ -709,7 +710,8 @@ export class MockModel {
   }
 
   async update(args: any) {
-    const table = this.getTable();
+    const allTables = this.client.getTables();
+    const table = allTables[this.modelName];
     const item = table.find(x => matchesWhere(x, args.where));
     if (!item) {
       throw new Error(`Record not found for update in model ${this.modelName}`);
@@ -728,6 +730,7 @@ export class MockModel {
       }
     }
     item.updatedAt = new Date();
+    this.client.saveTables(allTables);
 
     const cloned = cloneWithDates(item);
     if (args.include) {
@@ -737,12 +740,14 @@ export class MockModel {
   }
 
   async delete(args: any) {
-    const table = this.getTable();
+    const allTables = this.client.getTables();
+    const table = allTables[this.modelName];
     const index = table.findIndex(x => matchesWhere(x, args.where));
     if (index === -1) {
       throw new Error(`Record not found for delete in model ${this.modelName}`);
     }
     const item = table.splice(index, 1)[0];
+    this.client.saveTables(allTables);
     return cloneWithDates(item);
   }
 
@@ -753,10 +758,12 @@ export class MockModel {
   }
 
   async deleteMany(args: any = {}) {
-    const table = this.getTable();
+    const allTables = this.client.getTables();
+    const table = allTables[this.modelName];
     if (!args.where || Object.keys(args.where).length === 0) {
       const len = table.length;
-      this.client.tables[this.modelName] = [];
+      allTables[this.modelName] = [];
+      this.client.saveTables(allTables);
       return { count: len };
     }
     let deleteCount = 0;
@@ -767,7 +774,8 @@ export class MockModel {
       }
       return true;
     });
-    this.client.tables[this.modelName] = remaining;
+    allTables[this.modelName] = remaining;
+    this.client.saveTables(allTables);
     return { count: deleteCount };
   }
 
@@ -800,16 +808,18 @@ export class MockModel {
   private populateRelations(item: any, include: any) {
     if (!include) return;
 
+    const tables = this.client.getTables();
+
     if (this.modelName === "application") {
       if (include.documents) {
-        const docTable = this.client.tables["document"];
+        const docTable = tables["document"];
         const docs = docTable.filter(d => d.applicationId === item.id);
         const subInclude = include.documents.include;
         const clonedDocs = cloneWithDates(docs);
         if (subInclude) {
           clonedDocs.forEach(d => {
             if (subInclude.extractionResult) {
-              const extTable = this.client.tables["extractionResult"];
+              const extTable = tables["extractionResult"];
               const ext = extTable.find(e => e.documentId === d.id);
               d.extractionResult = ext ? cloneWithDates(ext) : null;
             }
@@ -822,7 +832,7 @@ export class MockModel {
       }
 
       if (include.validationDiscrepancies) {
-        const discTable = this.client.tables["validationDiscrepancy"];
+        const discTable = tables["validationDiscrepancy"];
         const discrepancies = discTable.filter(d => d.applicationId === item.id);
         const clonedDisc = cloneWithDates(discrepancies);
         if (include.validationDiscrepancies.orderBy) {
@@ -832,13 +842,13 @@ export class MockModel {
       }
 
       if (include.recommendations) {
-        const recTable = this.client.tables["recommendation"];
+        const recTable = tables["recommendation"];
         const recommendations = recTable.filter(r => r.applicationId === item.id);
         const clonedRec = cloneWithDates(recommendations);
         const subInclude = include.recommendations.include;
         if (subInclude?.user) {
           clonedRec.forEach(r => {
-            const userTable = this.client.tables["user"];
+            const userTable = tables["user"];
             const user = userTable.find(u => u.id === r.createdBy);
             r.user = user ? { id: user.id, name: user.name, email: user.email } : null;
           });
@@ -850,13 +860,13 @@ export class MockModel {
       }
 
       if (include.analystReviews) {
-        const revTable = this.client.tables["analystReview"];
+        const revTable = tables["analystReview"];
         const reviews = revTable.filter(r => r.applicationId === item.id);
         const clonedRev = cloneWithDates(reviews);
         const subInclude = include.analystReviews.include;
         if (subInclude?.reviewer) {
           clonedRev.forEach(r => {
-            const userTable = this.client.tables["user"];
+            const userTable = tables["user"];
             const user = userTable.find(u => u.id === r.reviewedBy);
             r.reviewer = user ? { id: user.id, name: user.name, email: user.email } : null;
           });
@@ -868,7 +878,7 @@ export class MockModel {
       }
 
       if (include.applicationStatusHistory) {
-        const statusTable = this.client.tables["applicationStatus"];
+        const statusTable = tables["applicationStatus"];
         const statuses = statusTable.filter(s => s.applicationId === item.id);
         const clonedStatuses = cloneWithDates(statuses);
         if (include.applicationStatusHistory.orderBy) {
@@ -880,7 +890,7 @@ export class MockModel {
 
     if (this.modelName === "document") {
       if (include.extractionResult) {
-        const extTable = this.client.tables["extractionResult"];
+        const extTable = tables["extractionResult"];
         const ext = extTable.find(e => e.documentId === item.id);
         item.extractionResult = ext ? cloneWithDates(ext) : null;
       }
@@ -888,7 +898,7 @@ export class MockModel {
 
     if (this.modelName === "auditLog") {
       if (include.user) {
-        const userTable = this.client.tables["user"];
+        const userTable = tables["user"];
         const user = userTable.find(u => u.id === item.userId);
         item.user = user ? { id: user.id, name: user.name, email: user.email } : null;
       }
@@ -896,12 +906,12 @@ export class MockModel {
 
     if (this.modelName === "recommendation") {
       if (include.user) {
-        const userTable = this.client.tables["user"];
+        const userTable = tables["user"];
         const user = userTable.find(u => u.id === item.createdBy);
         item.user = user ? { id: user.id, name: user.name, email: user.email } : null;
       }
       if (include.application) {
-        const appTable = this.client.tables["application"];
+        const appTable = tables["application"];
         const app = appTable.find(a => a.id === item.applicationId);
         item.application = app ? cloneWithDates(app) : null;
       }
@@ -909,12 +919,12 @@ export class MockModel {
 
     if (this.modelName === "analystReview") {
       if (include.reviewer) {
-        const userTable = this.client.tables["user"];
+        const userTable = tables["user"];
         const user = userTable.find(u => u.id === item.reviewedBy);
         item.reviewer = user ? { id: user.id, name: user.name, email: user.email } : null;
       }
       if (include.application) {
-        const appTable = this.client.tables["application"];
+        const appTable = tables["application"];
         const app = appTable.find(a => a.id === item.applicationId);
         item.application = app ? cloneWithDates(app) : null;
       }
@@ -934,9 +944,59 @@ export class MockDbClient {
   auditLog = new MockModel("auditLog", this);
 
   tables: Record<string, any[]>;
+  localInMemoryTables: Record<string, any[]> | null = null;
 
   constructor() {
     this.tables = initializeMockDb();
+  }
+
+  getTables(): Record<string, any[]> {
+    try {
+      let cookiesFn: any;
+      try {
+        cookiesFn = require("next/headers").cookies;
+      } catch {
+        // Ignore
+      }
+      if (cookiesFn) {
+        const cookieStore = cookiesFn();
+        const cookie = cookieStore.get("mock_db_state");
+        if (cookie && cookie.value) {
+          const parsed = JSON.parse(cookie.value);
+          return cloneWithDates(parsed);
+        }
+      }
+    } catch (e) {
+      // Ignore
+    }
+    
+    if (!this.localInMemoryTables) {
+      this.localInMemoryTables = this.tables;
+    }
+    return this.localInMemoryTables;
+  }
+
+  saveTables(tables: Record<string, any[]>) {
+    this.localInMemoryTables = tables;
+    try {
+      let cookiesFn: any;
+      try {
+        cookiesFn = require("next/headers").cookies;
+      } catch {
+        // Ignore
+      }
+      if (cookiesFn) {
+        const cookieStore = cookiesFn();
+        cookieStore.set("mock_db_state", JSON.stringify(tables), {
+          path: "/",
+          maxAge: 60 * 60 * 24, // 1 day
+          sameSite: "lax",
+          secure: process.env.NODE_ENV === "production",
+        });
+      }
+    } catch (e) {
+      // Ignore
+    }
   }
 
   async $transaction(arg: any) {
